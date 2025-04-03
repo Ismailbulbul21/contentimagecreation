@@ -5,13 +5,76 @@ import {
     OPENROUTER_DEEPSEEK_URL
 } from './apiConfig';
 
+// Fallback sample responses if API fails
+const FALLBACK_RESPONSES = {
+    en: {
+        'social-post': `Headline: Limited Time Offer - Don't Miss Out!
+
+Ready for the deal of a lifetime? Our special promotion is too good to pass up! 
+
+For a limited time only, we're offering incredible savings on our best products and services. Perfect for anyone looking to upgrade their experience without breaking the bank.
+
+Act now – this offer won't last forever! Click the link in bio to learn more and claim your exclusive discount.
+
+#SpecialOffer #LimitedTime #DontMissOut`,
+
+        'flyer': `SPECIAL PROMOTION!
+        
+Our Biggest Sale of the Year is HERE!
+
+🔥 50% OFF All Products
+🔥 Buy One Get One Free
+🔥 Free Shipping on Orders over $50
+
+This Weekend Only - Friday through Sunday
+Visit our store or shop online using code: SPECIAL50
+
+Don't miss this incredible opportunity to save on all your favorite products!
+
+Contact us: 
+Phone: (555) 123-4567
+Email: sales@example.com
+Website: www.example.com`,
+    },
+    so: {
+        'social-post': `Cinwaan: Waqti Xaddidan - Ha Lumin!
+
+Ma diyaar u tahay qiime yaab leh? Dhejintayada gaar ah aad ayey u fiican tahay si loo seego!
+
+Waqti xaddidan, waxaan bixinaynaa kaydis cajiib ah oo ku saabsan alaabadayada iyo adeegyada ugu fiican. Waa mid ku habboon qof kasta oo raba inuu kor u qaado khibradooda iyada oo aan miisaaniyadda la jabin.
+
+Haddaba rabo - furshadan ma soconeyso ilaa iyo weligeed! Riix xiriirka ku jira bayoolka si aad u barato wax badan oo aad ku sheegato qiimo-dhimidaada gaarka ah.
+
+#DhejinGaar #WaqtiXadidan #HaLumin`,
+
+        'flyer': `DHEJIN GAAR AH!
+        
+Iibitaankayaga Ugu Weyn ee Sanadka waa HALKAN!
+
+🔥 50% KA DHIMIS Dhammaan Alaabooyinka
+🔥 Iibso Mid Hel Mid Bilaash ah
+🔥 Dhoofinta Bilaashka ah ee Dalabada ka badan $50
+
+Dhammaadkan Todobaadka Oo keliya - Jimcaha ilaa Axadda
+Booqo dukaankayaga ama ka adeego onlayn adoo isticmaalaya koodhka: SPECIAL50
+
+Ha seegin fursadan cajiibka ah ee wax lagu keydsado dhammaan alaabooyinkaaga la jecel yahay!
+
+Nala soo xiriir:
+Telefoon: (555) 123-4567
+Email: sales@example.com
+Website: www.example.com`,
+    }
+};
+
 /**
  * Generate text using the Gemini API
  * @param {string} prompt - The prompt to generate text from
  * @param {string} language - The language to generate content in ('en' or 'so')
+ * @param {string} contentType - The type of content to generate
  * @returns {Promise<string>} - The generated text
  */
-export const generateWithGemini = async (prompt, language = 'en') => {
+export const generateWithGemini = async (prompt, language = 'en', contentType = 'social-post') => {
     try {
         console.log('Using API key (first 10 chars):', GEMINI_API_KEY ? GEMINI_API_KEY.substring(0, 10) + '...' : 'Key not found');
         console.log('Using API URL:', OPENROUTER_GEMINI_URL);
@@ -50,9 +113,21 @@ export const generateWithGemini = async (prompt, language = 'en') => {
         }
 
         const data = await response.json();
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+            console.error('Unexpected API response format:', data);
+            throw new Error('The API returned an unexpected response format. Please try again.');
+        }
         return data.choices[0].message.content;
     } catch (error) {
         console.error('Error generating text with Gemini:', error);
+
+        // Use fallback content if API fails
+        if (process.env.NODE_ENV === 'production') {
+            console.log('Using fallback content for:', contentType, language);
+            return FALLBACK_RESPONSES[language]?.[contentType] ||
+                FALLBACK_RESPONSES['en']['social-post']; // Default fallback
+        }
+
         throw error;
     }
 };
@@ -61,9 +136,10 @@ export const generateWithGemini = async (prompt, language = 'en') => {
  * Generate text using the DeepSeek API
  * @param {string} prompt - The prompt to generate text from
  * @param {string} language - The language to generate content in ('en' or 'so')
+ * @param {string} contentType - The type of content to generate
  * @returns {Promise<string>} - The generated text
  */
-export const generateWithDeepSeek = async (prompt, language = 'en') => {
+export const generateWithDeepSeek = async (prompt, language = 'en', contentType = 'social-post') => {
     try {
         console.log('Using DeepSeek API key (first 10 chars):', DEEPSEEK_API_KEY ? DEEPSEEK_API_KEY.substring(0, 10) + '...' : 'Key not found');
         console.log('Using DeepSeek API URL:', OPENROUTER_DEEPSEEK_URL);
@@ -102,9 +178,21 @@ export const generateWithDeepSeek = async (prompt, language = 'en') => {
         }
 
         const data = await response.json();
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+            console.error('Unexpected API response format:', data);
+            throw new Error('The API returned an unexpected response format. Please try again.');
+        }
         return data.choices[0].message.content;
     } catch (error) {
         console.error('Error generating text with DeepSeek:', error);
+
+        // Use fallback content if API fails
+        if (process.env.NODE_ENV === 'production') {
+            console.log('Using fallback content for:', contentType, language);
+            return FALLBACK_RESPONSES[language]?.[contentType] ||
+                FALLBACK_RESPONSES['en']['social-post']; // Default fallback
+        }
+
         throw error;
     }
 };
@@ -147,9 +235,20 @@ export const generatePromotionalContent = async ({
     Format the response in a clean, organized structure.
   `;
 
-    if (model.toLowerCase() === 'deepseek') {
-        return generateWithDeepSeek(prompt, language);
-    } else {
-        return generateWithGemini(prompt, language);
+    try {
+        if (model.toLowerCase() === 'deepseek') {
+            return await generateWithDeepSeek(prompt, language, contentType);
+        } else {
+            return await generateWithGemini(prompt, language, contentType);
+        }
+    } catch (error) {
+        // In case both API calls fail and we're not in production
+        if (process.env.NODE_ENV !== 'production') {
+            // In development, use fallback content
+            console.log('Fallback content used due to API failure');
+            return FALLBACK_RESPONSES[language]?.[contentType] ||
+                FALLBACK_RESPONSES['en']['social-post']; // Default fallback
+        }
+        throw error;
     }
 }; 
