@@ -6,8 +6,10 @@ import ContentPreview from './components/ContentPreview';
 import SavedTemplatesSection from './components/SavedTemplatesSection';
 import { generatePromotionalContent } from './services/textGenerationService';
 import { generatePromotionalImage } from './services/imageGenerationService';
+import { useLanguage } from './context/LanguageContext';
 
 const App = () => {
+  const { currentLanguage } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState('');
   const [generatedImage, setGeneratedImage] = useState('');
@@ -30,7 +32,10 @@ const App = () => {
       if (
         lowerLine.includes('headline:') || 
         lowerLine.includes('title:') || 
-        lowerLine.includes('heading:')
+        lowerLine.includes('heading:') ||
+        // Somali versions
+        lowerLine.includes('cinwaan:') ||
+        lowerLine.includes('qoraal:')
       ) {
         // Return the text after the colon
         return line.split(':')[1]?.trim() || '';
@@ -54,7 +59,8 @@ const App = () => {
         promotionDetails: data.promotionDetails,
         targetAudience: data.targetAudience,
         contentType: data.contentType,
-        model: data.aiModel
+        model: data.aiModel,
+        language: currentLanguage // Pass the current language
       });
       
       setGeneratedContent(contentResult);
@@ -78,7 +84,17 @@ const App = () => {
       saveTemplate(data);
     } catch (error) {
       console.error('Error generating content:', error);
-      alert('An error occurred while generating content. Please try again.');
+      // Show more detailed error message
+      const errorMessage = error.message || 'Unknown error';
+      const statusMatch = errorMessage.match(/Status: (\d+)/);
+      
+      if (statusMatch && statusMatch[1] === '401') {
+        alert('Authentication error: API key is invalid or missing. Please check your API keys in the environment variables.');
+      } else if (statusMatch && statusMatch[1] === '429') {
+        alert('Rate limit exceeded: You have reached the maximum number of requests allowed by the API. Please try again later.');
+      } else {
+        alert(`An error occurred while generating content: ${errorMessage}. Please try again.`);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import AutocompleteInput from "./AutocompleteInput";
 import { businessTypes, targetAudiences, getPromotionIdeas } from "../utils/autocompleteData";
-
-const CONTENT_TYPES = [
-  { value: 'social-post', label: 'Social Media Post' },
-  { value: 'flyer', label: 'Promotional Flyer' },
-  { value: 'email', label: 'Email Campaign' },
-  { value: 'ad-copy', label: 'Advertisement Copy' },
-  { value: 'tagline', label: 'Business Tagline/Slogan' }
-];
-
-const IMAGE_STYLES = [
-  { value: 'modern', label: 'Modern & Clean' },
-  { value: 'vibrant', label: 'Vibrant & Colorful' },
-  { value: 'vintage', label: 'Vintage/Retro' },
-  { value: 'elegant', label: 'Elegant & Sophisticated' },
-  { value: 'friendly', label: 'Friendly & Approachable' }
-];
-
-const AI_MODELS = [
-  { value: 'gemini', label: 'Gemini AI' },
-  { value: 'deepseek', label: 'DeepSeek AI' }
-];
+import { useLanguage } from '../context/LanguageContext';
 
 const ContentForm = ({ onSubmit, isLoading, initialData }) => {
+  const { texts, currentLanguage } = useLanguage();
+  
+  // Content type options with translations
+  const CONTENT_TYPES = [
+    { value: 'social-post', label: currentLanguage === 'en' ? 'Social Media Post' : 'Boostada Baraha Bulshada' },
+    { value: 'flyer', label: currentLanguage === 'en' ? 'Promotional Flyer' : 'Warqada Dhejinta' },
+    { value: 'email', label: currentLanguage === 'en' ? 'Email Campaign' : 'Ololaha Emailka' },
+    { value: 'ad-copy', label: currentLanguage === 'en' ? 'Advertisement Copy' : 'Qoraalka Xayeysiinta' },
+    { value: 'tagline', label: currentLanguage === 'en' ? 'Business Tagline/Slogan' : 'Hadalqaadka Ganacsiga' }
+  ];
+
+  // Image style options with translations
+  const IMAGE_STYLES = [
+    { value: 'modern', label: currentLanguage === 'en' ? 'Modern & Clean' : 'Casri & Nadiif' },
+    { value: 'vibrant', label: currentLanguage === 'en' ? 'Vibrant & Colorful' : 'Nuuraya & Midabaysan' },
+    { value: 'vintage', label: currentLanguage === 'en' ? 'Vintage/Retro' : 'Hore/Dhaqameed' },
+    { value: 'elegant', label: currentLanguage === 'en' ? 'Elegant & Sophisticated' : 'Qurux & Casri' },
+    { value: 'friendly', label: currentLanguage === 'en' ? 'Friendly & Approachable' : 'Saaxiibtinimo & Fudud' }
+  ];
+
+  // AI model options with translations
+  const AI_MODELS = [
+    { value: 'gemini', label: 'Gemini AI' },
+    { value: 'deepseek', label: 'DeepSeek AI' }
+  ];
+
   const [formData, setFormData] = useState({
     businessType: '',
     promotionDetails: '',
@@ -65,16 +71,18 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">Create Promotional Content</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {currentLanguage === 'en' ? 'Create Promotional Content' : 'Samee Qoraalka Dhejinta'}
+      </h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <AutocompleteInput
             id="businessType"
             name="businessType"
-            label="Business Type"
+            label={texts.businessType}
             value={formData.businessType}
             onChange={handleChange}
-            placeholder="e.g., Cafe, Boutique Store, Fitness Studio"
+            placeholder={texts.businessTypePlaceholder}
             suggestions={businessTypes}
             required
           />
@@ -84,10 +92,10 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
           <AutocompleteInput
             id="promotionDetails"
             name="promotionDetails"
-            label="Promotion Details"
+            label={texts.promotionDetails}
             value={formData.promotionDetails}
             onChange={handleChange}
-            placeholder="Describe your promotion, sale, event, or new product"
+            placeholder={texts.promotionDetailsPlaceholder}
             suggestions={promotionSuggestions}
             required
             className="h-24" // Make this input taller like a textarea
@@ -98,10 +106,10 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
           <AutocompleteInput
             id="targetAudience"
             name="targetAudience"
-            label="Target Audience"
+            label={texts.targetAudience}
             value={formData.targetAudience}
             onChange={handleChange}
-            placeholder="e.g., Young professionals, Parents, Local community"
+            placeholder={texts.targetAudiencePlaceholder}
             suggestions={targetAudiences}
             required
           />
@@ -110,7 +118,7 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label htmlFor="contentType" className="block mb-2 font-medium">
-              Content Type
+              {texts.contentType}
             </label>
             <select
               id="contentType"
@@ -129,7 +137,7 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
 
           <div>
             <label htmlFor="imageStyle" className="block mb-2 font-medium">
-              Image Style
+              {texts.imageStyle}
             </label>
             <select
               id="imageStyle"
@@ -148,7 +156,7 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
 
           <div>
             <label htmlFor="aiModel" className="block mb-2 font-medium">
-              AI Text Model
+              {texts.aiModel}
             </label>
             <select
               id="aiModel"
@@ -176,10 +184,12 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
             onChange={handleChange}
           />
           <label htmlFor="includeTextInImage" className="font-medium">
-            Add headline text to image
+            {texts.includeTextInImage}
           </label>
           <span className="ml-2 text-xs text-gray-500">
-            (The headline will be extracted from the generated content)
+            {currentLanguage === 'en' 
+              ? '(The headline will be extracted from the generated content)' 
+              : '(Cinwaanka waxaa laga soo saari doonaa qoraalka la sameeyay)'}
           </span>
         </div>
 
@@ -188,7 +198,9 @@ const ContentForm = ({ onSubmit, isLoading, initialData }) => {
           className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 disabled:bg-blue-400"
           disabled={isLoading}
         >
-          {isLoading ? 'Generating...' : 'Generate Content'}
+          {isLoading 
+            ? (currentLanguage === 'en' ? 'Generating...' : 'Waa la sameynayaa...') 
+            : texts.generateContent}
         </button>
       </form>
     </div>

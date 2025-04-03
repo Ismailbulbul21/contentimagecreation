@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const SavedTemplatesSection = ({ onLoadTemplate }) => {
+  const { currentLanguage, texts } = useLanguage();
   const [savedTemplates, setSavedTemplates] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -21,6 +23,24 @@ const SavedTemplatesSection = ({ onLoadTemplate }) => {
     return null;
   }
 
+  // Translations
+  const translations = {
+    en: {
+      savedTemplates: "Your Saved Templates",
+      load: "Load",
+      delete: "Delete",
+      socialMedia: "Social Media"
+    },
+    so: {
+      savedTemplates: "Qaababkaaga La Keydsaday",
+      load: "Isticmaal",
+      delete: "Tirtir",
+      socialMedia: "Baraha Bulshada"
+    }
+  };
+
+  const t = translations[currentLanguage];
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <div 
@@ -28,7 +48,7 @@ const SavedTemplatesSection = ({ onLoadTemplate }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <h2 className="text-xl font-semibold">
-          Your Saved Templates ({savedTemplates.length})
+          {t.savedTemplates} ({savedTemplates.length})
         </h2>
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
@@ -50,7 +70,7 @@ const SavedTemplatesSection = ({ onLoadTemplate }) => {
               <p className="text-xs text-gray-500 mb-3">
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                   {template.contentType === 'social-post' 
-                    ? 'Social Media' 
+                    ? t.socialMedia 
                     : template.contentType.charAt(0).toUpperCase() + template.contentType.slice(1)}
                 </span>
                 <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
@@ -62,7 +82,7 @@ const SavedTemplatesSection = ({ onLoadTemplate }) => {
                   onClick={() => onLoadTemplate(template)}
                   className="text-sm text-blue-600 hover:text-blue-800"
                 >
-                  Load
+                  {t.load}
                 </button>
                 <button
                   onClick={(e) => {
@@ -71,7 +91,7 @@ const SavedTemplatesSection = ({ onLoadTemplate }) => {
                   }}
                   className="text-sm text-red-600 hover:text-red-800"
                 >
-                  Delete
+                  {t.delete}
                 </button>
               </div>
             </div>

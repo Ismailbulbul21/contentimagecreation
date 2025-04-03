@@ -8,10 +8,20 @@ import {
 /**
  * Generate text using the Gemini API
  * @param {string} prompt - The prompt to generate text from
+ * @param {string} language - The language to generate content in ('en' or 'so')
  * @returns {Promise<string>} - The generated text
  */
-export const generateWithGemini = async (prompt) => {
+export const generateWithGemini = async (prompt, language = 'en') => {
     try {
+        console.log('Using API key (first 10 chars):', GEMINI_API_KEY ? GEMINI_API_KEY.substring(0, 10) + '...' : 'Key not found');
+        console.log('Using API URL:', OPENROUTER_GEMINI_URL);
+
+        // Modify prompt to include language instruction
+        let finalPrompt = prompt;
+        if (language === 'so') {
+            finalPrompt = `Generate response in Somali language (af-Soomaali). ${prompt}`;
+        }
+
         const response = await fetch(OPENROUTER_GEMINI_URL, {
             method: 'POST',
             headers: {
@@ -25,7 +35,7 @@ export const generateWithGemini = async (prompt) => {
                 messages: [
                     {
                         role: 'user',
-                        content: prompt
+                        content: finalPrompt
                     }
                 ],
                 temperature: 0.7,
@@ -34,7 +44,9 @@ export const generateWithGemini = async (prompt) => {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('API Response Error:', response.status, response.statusText, errorText);
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
         }
 
         const data = await response.json();
@@ -48,10 +60,20 @@ export const generateWithGemini = async (prompt) => {
 /**
  * Generate text using the DeepSeek API
  * @param {string} prompt - The prompt to generate text from
+ * @param {string} language - The language to generate content in ('en' or 'so')
  * @returns {Promise<string>} - The generated text
  */
-export const generateWithDeepSeek = async (prompt) => {
+export const generateWithDeepSeek = async (prompt, language = 'en') => {
     try {
+        console.log('Using DeepSeek API key (first 10 chars):', DEEPSEEK_API_KEY ? DEEPSEEK_API_KEY.substring(0, 10) + '...' : 'Key not found');
+        console.log('Using DeepSeek API URL:', OPENROUTER_DEEPSEEK_URL);
+
+        // Modify prompt to include language instruction
+        let finalPrompt = prompt;
+        if (language === 'so') {
+            finalPrompt = `Generate response in Somali language (af-Soomaali). ${prompt}`;
+        }
+
         const response = await fetch(OPENROUTER_DEEPSEEK_URL, {
             method: 'POST',
             headers: {
@@ -65,7 +87,7 @@ export const generateWithDeepSeek = async (prompt) => {
                 messages: [
                     {
                         role: 'user',
-                        content: prompt
+                        content: finalPrompt
                     }
                 ],
                 temperature: 0.7,
@@ -74,7 +96,9 @@ export const generateWithDeepSeek = async (prompt) => {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('DeepSeek API Response Error:', response.status, response.statusText, errorText);
+            throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
         }
 
         const data = await response.json();
@@ -93,6 +117,7 @@ export const generateWithDeepSeek = async (prompt) => {
  * @param {string} params.targetAudience - The target audience for the promotion
  * @param {string} params.contentType - The type of content to generate (social, flyer, etc.)
  * @param {string} params.model - The model to use (gemini or deepseek)
+ * @param {string} params.language - The language to generate content in ('en' or 'so')
  * @returns {Promise<string>} - The generated promotional content
  */
 export const generatePromotionalContent = async ({
@@ -100,7 +125,8 @@ export const generatePromotionalContent = async ({
     promotionDetails,
     targetAudience,
     contentType,
-    model = 'gemini'
+    model = 'gemini',
+    language = 'en'
 }) => {
     const prompt = `
     Generate compelling promotional content for the following:
@@ -122,8 +148,8 @@ export const generatePromotionalContent = async ({
   `;
 
     if (model.toLowerCase() === 'deepseek') {
-        return generateWithDeepSeek(prompt);
+        return generateWithDeepSeek(prompt, language);
     } else {
-        return generateWithGemini(prompt);
+        return generateWithGemini(prompt, language);
     }
 }; 
