@@ -67,7 +67,8 @@ The easiest way to deploy your application is using Vercel:
 
 For production deployment, set the following environment variables:
 
-- `VITE_OPENAI_API_KEY` - Your OpenAI API key
+- `VITE_GEMINI_API_KEY` - Your OpenRouter Gemini Pro API key
+- `VITE_DEEPSEEK_API_KEY` - Your OpenRouter DeepSeek API key
 - `VITE_HUGGINGFACE_API_KEY` - Your Hugging Face API key
 
 ## Project Structure
